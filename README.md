@@ -139,5 +139,6 @@ http://localhost:5173
 ## Notes 📝
 
 - 当前仓库已经修复 GitHub Pages 部署失败的锁文件问题
+- 当前依赖组合将 `vite` 固定在 7.x，以匹配 `vite-plugin-pwa@1.2.0` 的官方 peer 依赖范围
 - 如果后续你希望启用更稳定的 CI 依赖缓存，建议在干净环境里重新生成并提交正确的 `package-lock.json`
 - 若仓库名不是用户主页仓库，Vite 会在 GitHub Actions 中自动使用正确的 Pages `base` 路径
