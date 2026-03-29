@@ -21,6 +21,9 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      PAGES_ENABLEMENT_TOKEN: ${{ secrets.PAGES_ENABLEMENT_TOKEN }}
+      HAS_PAGES_ENABLEMENT_TOKEN: ${{ secrets.PAGES_ENABLEMENT_TOKEN != '' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -32,8 +35,44 @@ jobs:
           cache: npm
           cache-dependency-path: package-lock.json
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
+      - name: Validate GitHub Pages availability
+        if: env.HAS_PAGES_ENABLEMENT_TOKEN != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPOSITORY: ${{ github.repository }}
+        run: |
+          set -eu
+
+          api_url="https://api.github.com/repos/${GH_REPOSITORY}/pages"
+          status="$(curl -sS -o /tmp/pages.json -w "%{http_code}" \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "${api_url}")"
+
+          if [ "${status}" = "200" ]; then
+            echo "GitHub Pages is already enabled for ${GH_REPOSITORY}."
+            exit 0
+          fi
+
+          if [ "${status}" = "404" ]; then
+            echo "::error title=GitHub Pages is not enabled::Pages is not enabled for ${GH_REPOSITORY}. Enable it in Settings > Pages > Build and deployment > Source > GitHub Actions, or add the PAGES_ENABLEMENT_TOKEN secret so this workflow can enable it automatically."
+            exit 1
+          fi
+
+          response_preview="$(tr '\n' ' ' < /tmp/pages.json | cut -c 1-300)"
+          echo "::error title=Unable to verify GitHub Pages::GitHub API returned status ${status} while checking Pages for ${GH_REPOSITORY}. Response: ${response_preview}"
+          exit 1
+
+      - name: Configure GitHub Pages with enablement
+        if: env.HAS_PAGES_ENABLEMENT_TOKEN == 'true'
+        uses: actions/configure-pages@v6
+        with:
+          token: ${{ env.PAGES_ENABLEMENT_TOKEN }}
+          enablement: true
+
+      - name: Configure GitHub Pages
+        if: env.HAS_PAGES_ENABLEMENT_TOKEN != 'true'
+        uses: actions/configure-pages@v6
 
       - name: Install dependencies
         run: npm ci

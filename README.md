@@ -79,16 +79,31 @@ http://localhost:5173
 
 1. 使用 `actions/checkout@v6`
 2. 使用 `actions/setup-node@v6`
-3. 通过 `npm ci` 安装依赖
-4. 运行测试
-5. 构建 `dist/`
-6. 发布到 GitHub Pages
+3. 预检查仓库是否已启用 GitHub Pages
+4. 使用 `actions/configure-pages@v6`
+5. 通过 `npm ci` 安装依赖
+6. 运行测试
+7. 构建 `dist/`
+8. 发布到 GitHub Pages
 
 另外已经补上：
 
 - `package-lock.json`
 - `packageManager` 字段
 - Node 24 兼容工作流环境变量
+- `configure-pages@v6`
+
+首次启用 GitHub Pages 时有两种方式：
+
+1. 推荐：到仓库 `Settings > Pages > Build and deployment > Source` 手动选择 `GitHub Actions`
+2. 可选：新增仓库 Secret `PAGES_ENABLEMENT_TOKEN`，让工作流自动启用 Pages
+
+如果你选择第 2 种方式，这个 token 不能是 `GITHUB_TOKEN`，需要额外的权限：
+
+- Personal Access Token: `repo` scope 或 Pages 写权限
+- GitHub App: `administration:write` 和 `pages:write`
+
+如果既没有启用 Pages，也没有配置 `PAGES_ENABLEMENT_TOKEN`，工作流会直接失败，并输出明确的操作提示，而不是只看到 `configure-pages` 的 404 报错。 🧭
 
 这样可以避免之前 GitHub Actions 因为找不到锁文件而直接失败。 ✅
 
