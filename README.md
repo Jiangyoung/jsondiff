@@ -91,6 +91,7 @@ http://localhost:5173
 - `packageManager` 字段
 - Node 24 兼容工作流环境变量
 - `configure-pages@v6`
+- `package-manager-cache: false`，避免 `setup-node@v6` 因缺少锁文件自动开启 npm 缓存后直接失败
 
 首次启用 GitHub Pages 时有两种方式：
 
