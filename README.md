@@ -10,6 +10,10 @@
 - 一致节点白底展示，差异节点按新增 / 删除 / 修改区分颜色
 - 支持宽屏更宽显示，也兼顾中小屏适配
 
+在线体验：
+
+- https://jiangyoung.github.io/jsondiff/
+
 ## Features 🚀
 
 - 完整左右 JSON 树对照，而不是只看扁平 diff
