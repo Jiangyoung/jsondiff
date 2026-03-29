@@ -81,14 +81,13 @@ http://localhost:5173
 2. 使用 `actions/setup-node@v6`
 3. 预检查仓库是否已启用 GitHub Pages
 4. 使用 `actions/configure-pages@v6`
-5. 通过 `npm ci` 安装依赖
+5. 通过 `npm install` 安装依赖
 6. 运行测试
 7. 构建 `dist/`
 8. 发布到 GitHub Pages
 
 另外已经补上：
 
-- `package-lock.json`
 - `packageManager` 字段
 - Node 24 兼容工作流环境变量
 - `configure-pages@v6`
@@ -105,7 +104,7 @@ http://localhost:5173
 
 如果既没有启用 Pages，也没有配置 `PAGES_ENABLEMENT_TOKEN`，工作流会直接失败，并输出明确的操作提示，而不是只看到 `configure-pages` 的 404 报错。 🧭
 
-这样可以避免之前 GitHub Actions 因为找不到锁文件而直接失败。 ✅
+这样可以避免之前 GitHub Actions 因为锁文件缺失或锁文件内容异常而直接失败。 ✅
 
 ## Project Structure 📂
 
@@ -123,7 +122,6 @@ http://localhost:5173
 ├─ LICENSE
 ├─ README.md
 ├─ index.html
-├─ package-lock.json
 ├─ package.json
 └─ vite.config.mjs
 ```
@@ -140,5 +138,5 @@ http://localhost:5173
 ## Notes 📝
 
 - 当前仓库已经修复 GitHub Pages 部署失败的锁文件问题
-- 如果后续继续扩展功能，建议保持 `package-lock.json` 一并提交
+- 如果后续你希望启用更稳定的 CI 依赖缓存，建议在干净环境里重新生成并提交正确的 `package-lock.json`
 - 若仓库名不是用户主页仓库，Vite 会在 GitHub Actions 中自动使用正确的 Pages `base` 路径
