@@ -406,9 +406,22 @@ interface TreeComparePanelProps {
 
 function TreeComparePanel({ rows, onToggle }: TreeComparePanelProps) {
   const [hoveredRowId, setHoveredRowId] = useState<string | null>(null);
+  const hoveredRow = rows.find((row) => row.id === hoveredRowId) ?? null;
 
   return (
     <section className="tree-panel">
+      <div className="tree-pathbar">
+        <span className="tree-pathbar-label">PATH</span>
+        <code className="tree-pathbar-value">
+          {hoveredRow ? hoveredRow.node.path : "$"}
+        </code>
+        <span className="tree-pathbar-meta">
+          {hoveredRow
+            ? `${typeLabel(hoveredRow.node.leftType)} ↔ ${typeLabel(hoveredRow.node.rightType)}`
+            : "hover a node to inspect its path"}
+        </span>
+      </div>
+
       <div className="tree-header">
         <span>LEFT TREE</span>
         <span className="tree-status-head">STATUS</span>
@@ -433,7 +446,7 @@ function TreeComparePanel({ rows, onToggle }: TreeComparePanelProps) {
                 side="left"
                 onToggle={onToggle}
               />
-              <div className="tree-status-cell">
+              <div className={`tree-status-cell${hoveredRowId === row.id ? " tree-status-cell-hovered" : ""}`}>
                 <span className={`status-pill ${statusClass(row.node.kind)}`}>
                   {statusText(row.node.kind)}
                 </span>
