@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRegisterSW } from "virtual:pwa-register/react";
 import {
   buildDiff,
@@ -83,6 +83,8 @@ export default function App() {
     createCollapsedState(initialResult.root),
   );
   const [showUnchanged, setShowUnchanged] = useState(true);
+  const [showBackToTop, setShowBackToTop] = useState(false);
+  const resultSectionRef = useRef<HTMLElement | null>(null);
   const {
     offlineReady: [offlineReady, setOfflineReady],
     needRefresh: [needRefresh, setNeedRefresh],
@@ -96,10 +98,38 @@ export default function App() {
     ? buildTreeRows(result.root, collapsedMap, showUnchanged)
     : [];
 
+  useEffect(() => {
+    function handleScroll() {
+      setShowBackToTop(window.scrollY > 520);
+    }
+
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
+
   function handleCompare() {
     const next = compareJson(leftText, rightText);
     setResult(next);
     setCollapsedMap(createCollapsedState(next.root));
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (!resultSectionRef.current) {
+          return;
+        }
+
+        const targetTop =
+          resultSectionRef.current.getBoundingClientRect().top + window.scrollY - 12;
+
+        window.scrollTo({
+          top: Math.max(targetTop, 0),
+          behavior: "smooth",
+        });
+      });
+    });
   }
 
   function handleLoadSample() {
@@ -187,6 +217,13 @@ export default function App() {
     setNeedRefresh(false);
   }
 
+  function scrollToTop() {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  }
+
   return (
     <div className="page-shell">
       <div className="ambient ambient-left" />
@@ -267,7 +304,7 @@ export default function App() {
           />
         </section>
 
-        <section className="card result-card">
+        <section className="card result-card" ref={resultSectionRef}>
           <div className="result-header">
             <div>
               <p className="eyebrow">Tree Compare</p>
@@ -294,25 +331,6 @@ export default function App() {
             )}
           </div>
 
-          {result.stats && (
-            <div className="stats-grid">
-              <StatCard label="总差异" value={formatCount(totalChanges)} tone="accent" />
-              <StatCard label="新增" value={formatCount(result.stats.added)} tone="added" />
-              <StatCard label="删除" value={formatCount(result.stats.removed)} tone="removed" />
-              <StatCard label="修改" value={formatCount(result.stats.changed)} tone="changed" />
-              <StatCard
-                label="一致字段"
-                value={formatCount(result.stats.unchanged)}
-                tone="neutral"
-              />
-              <StatCard
-                label="差异叶子"
-                value={formatCount(result.diffLeafCount)}
-                tone="soft"
-              />
-            </div>
-          )}
-
           {hasErrors && (
             <div className="empty-state error-state">
               <h3>JSON 解析失败</h3>
@@ -332,8 +350,37 @@ export default function App() {
           {!hasErrors && hasChanges && (
             <TreeComparePanel rows={treeRows} onToggle={toggleNode} />
           )}
+
+          {result.stats && (
+            <div className="stats-grid result-stats-grid">
+              <StatCard label="总差异" value={formatCount(totalChanges)} tone="accent" />
+              <StatCard label="新增" value={formatCount(result.stats.added)} tone="added" />
+              <StatCard label="删除" value={formatCount(result.stats.removed)} tone="removed" />
+              <StatCard label="修改" value={formatCount(result.stats.changed)} tone="changed" />
+              <StatCard
+                label="一致字段"
+                value={formatCount(result.stats.unchanged)}
+                tone="neutral"
+              />
+              <StatCard
+                label="差异叶子"
+                value={formatCount(result.diffLeafCount)}
+                tone="soft"
+              />
+            </div>
+          )}
         </section>
       </main>
+
+      <button
+        aria-label="返回顶部"
+        className={`back-to-top${showBackToTop ? " back-to-top-visible" : ""}`}
+        onClick={scrollToTop}
+        type="button"
+      >
+        <span className="back-to-top-arrow">↑</span>
+        <span>顶部</span>
+      </button>
     </div>
   );
 }
